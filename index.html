@@ -3,196 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sportify Hand Cricket</title>
+    <title>Sportify: Royal Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
-        body { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); min-height: 100vh; }
+        :root { --gold: #d4af37; --silver: #c0c0c0; --bronze: #cd7f32; --dark: #0f172a; }
+        body { 
+            background: radial-gradient(circle at top, #1e293b 0%, #0f172a 100%);
+            font-family: 'Outfit', sans-serif;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .antique-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--gold);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+        }
+        .gold-text { color: var(--gold); font-family: 'Cinzel', serif; }
+        .gold-btn {
+            background: linear-gradient(135deg, #d4af37 0%, #f97316 100%);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .rank-1 { border: 2px solid var(--gold); background: rgba(212, 175, 55, 0.1); }
+        .rank-2 { border: 1px solid var(--silver); }
+        .rank-3 { border: 1px solid var(--bronze); }
+        
+        @keyframes crown-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .crown { animation: crown-float 2s ease-in-out infinite; }
     </style>
 </head>
-<body class="p-4 font-sans text-slate-800">
+<body class="p-4">
 
-    <div id="app" class="max-w-md mx-auto space-y-6">
-        <header class="text-center text-white py-6">
-            <h1 class="text-3xl font-bold tracking-tight">SPORTIFY</h1>
-            <p class="opacity-80">Hand Cricket Tournament Manager</p>
+    <div id="app" class="max-w-md mx-auto">
+        <header class="text-center py-6">
+            <h1 class="text-4xl gold-text tracking-widest">SPORTIFY</h1>
+            <p class="text-[10px] uppercase tracking-[0.4em] opacity-50">The Grand Tournament</p>
         </header>
 
-        <section id="setup" class="glass p-6 rounded-2xl shadow-xl">
-            <h2 class="text-xl font-bold mb-4">Player Registration</h2>
-            <textarea id="playerList" class="w-full p-3 border rounded-lg h-32 mb-4" placeholder="Enter names (one per line)...">Player 1
-Player 2
-Player 3
-Player 4
-Player 5
-Player 6
-Player 7
-Player 8</textarea>
-            <button onclick="startTournament()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Generate Tournament</button>
+        <section id="setupScreen" class="antique-card rounded-3xl p-6">
+            <h2 class="gold-text text-xl mb-4 text-center">Register Legends</h2>
+            <textarea id="playerInput" class="w-full bg-slate-900/50 p-4 rounded-xl mb-4 h-32 border border-slate-700 outline-none" placeholder="Enter Names...">Arjun&#10;Vikram&#10;Zaid&#10;Karan</textarea>
+            <button onclick="initTournament()" class="w-full gold-btn py-4 rounded-2xl font-bold uppercase tracking-widest">Seal the Roster</button>
         </section>
 
-        <section id="dashboard" class="hidden space-y-6">
-            <div class="glass p-4 rounded-2xl shadow-lg">
-                <h2 class="text-lg font-bold mb-3 flex justify-between">
-                    Points Table 
-                    <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Group Stage</span>
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm" id="pointsTable">
-                        <thead>
-                            <tr class="border-b">
-                                <th class="py-2">Player</th>
-                                <th>P</th>
-                                <th>W</th>
-                                <th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+        <section id="dashScreen" class="hidden space-y-6">
+            <div class="antique-card rounded-2xl p-4">
+                <h3 class="gold-text text-sm mb-3">Live Standings</h3>
+                <table class="w-full text-left text-sm">
+                    <tbody id="pointsBody"></tbody>
+                </table>
+            </div>
+            <div id="fixtureList" class="space-y-3"></div>
+        </section>
+
+        <section id="gameScreen" class="hidden antique-card rounded-3xl p-6 relative">
+            <div id="tossLayer" class="text-center py-10">
+                <h2 class="gold-text text-2xl mb-8">The Sacred Toss</h2>
+                <div class="flex justify-around">
+                    <button onclick="playToss('Heads')" class="w-24 h-24 rounded-full border-2 border-gold gold-text text-sm hover:bg-gold hover:text-black transition">HEADS</button>
+                    <button onclick="playToss('Tails')" class="w-24 h-24 rounded-full border-2 border-gold gold-text text-sm hover:bg-gold hover:text-black transition">TAILS</button>
                 </div>
             </div>
 
-            <div class="glass p-4 rounded-2xl shadow-lg">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold">Fixtures</h2>
-                    <button onclick="copyFixtures()" class="text-xs bg-slate-200 px-3 py-1 rounded-full font-medium">Copy Fixtures</button>
+            <div id="playLayer" class="hidden">
+                <div class="flex justify-between items-end border-b border-slate-800 pb-4 mb-6">
+                    <div>
+                        <p id="battingName" class="gold-text text-xl leading-tight"></p>
+                        <p class="text-[10px] uppercase tracking-widest opacity-50">Currently Batting</p>
+                    </div>
+                    <div class="text-right">
+                        <p id="currentScore" class="text-4xl font-black">0</p>
+                        <p id="wicketStatus" class="text-[10px] text-red-500 font-bold uppercase tracking-tighter">Wickets: 0/2</p>
+                    </div>
                 </div>
-                <div id="matchList" class="space-y-3"></div>
-            </div>
-
-            <div id="knockoutSection" class="hidden glass p-4 rounded-2xl shadow-lg border-2 border-yellow-400">
-                <h2 class="text-lg font-bold mb-3 text-yellow-700">Final (Qualifiers)</h2>
-                <div id="finalMatch"></div>
+                <div class="text-center h-16 mb-6">
+                    <p id="gameFeedback" class="text-sm italic opacity-80"></p>
+                    <p id="targetText" class="gold-text font-bold text-lg mt-1"></p>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <script>
+                        for(let i=1; i<=6; i++) document.write(`<button onclick="playHand(${i})" class="gold-btn py-5 rounded-2xl text-2xl font-bold">${i}</button>`);
+                    </script>
+                </div>
             </div>
         </section>
 
-        <section id="winnerScreen" class="hidden glass p-10 rounded-2xl shadow-2xl text-center animate-bounce">
-            <h2 class="text-4xl mb-2">🏆</h2>
-            <h1 class="text-2xl font-black text-blue-900">TOURNAMENT CHAMPION</h1>
-            <p id="winnerName" class="text-3xl mt-4 font-bold text-orange-500"></p>
-            <button onclick="location.reload()" class="mt-8 text-blue-600 underline text-sm">Reset Tournament</button>
+        <section id="rankingScreen" class="hidden space-y-6 pb-10">
+            <div class="text-center py-6">
+                <div class="text-6xl crown mb-2">👑</div>
+                <h1 class="gold-text text-3xl">Hall of Fame</h1>
+                <p class="text-xs opacity-50 uppercase tracking-[0.2em]">Tournament Concluded</p>
+            </div>
+            
+            <div id="podiumList" class="space-y-4">
+                </div>
+
+            <button onclick="location.reload()" class="w-full py-4 text-xs uppercase tracking-widest opacity-30 hover:opacity-100 transition">Start New Era</button>
         </section>
     </div>
 
     <script>
         let players = [];
-        let matches = [];
+        let fixtures = [];
+        let activeMatchIdx = null;
+        let gameState = {};
 
-        function startTournament() {
-            const input = document.getElementById('playerList').value;
-            players = input.split('\n').filter(n => n.trim() !== '').map(name => ({
-                name: name.trim(),
-                played: 0,
-                won: 0,
-                points: 0
-            }));
-
-            if (players.length < 2) return alert("Need at least 2 players!");
-
-            generateRoundRobin();
-            renderPointsTable();
-            renderMatches();
-
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('dashboard').classList.remove('hidden');
-        }
-
-        function generateRoundRobin() {
-            matches = [];
-            for (let i = 0; i < players.length; i++) {
-                for (let j = i + 1; j < players.length; j++) {
-                    matches.push({ p1: players[i].name, p2: players[j].name, s1: null, s2: null, complete: false });
+        function initTournament() {
+            const lines = document.getElementById('playerInput').value.split('\n').filter(l => l.trim());
+            players = lines.map(n => ({ name: n.trim(), p: 0, w: 0, pts: 0, runsScored: 0 }));
+            
+            fixtures = [];
+            for(let i=0; i<players.length; i++) {
+                for(let j=i+1; j<players.length; j++) {
+                    fixtures.push({ p1: players[i].name, p2: players[j].name, status: 'Upcoming' });
                 }
             }
+            showScreen('dashScreen');
+            renderDash();
         }
 
-        function updateScore(index, p1Score, p2Score) {
-            const m = matches[index];
-            m.s1 = parseInt(p1Score);
-            m.s2 = parseInt(p2Score);
-            m.complete = (p1Score !== "" && p2Score !== "");
-            
-            recalculateStats();
-        }
-
-        function recalculateStats() {
-            players.forEach(p => { p.played = 0; p.won = 0; p.points = 0; });
-            
-            matches.forEach(m => {
-                if (m.complete) {
-                    const player1 = players.find(p => p.name === m.p1);
-                    const player2 = players.find(p => p.name === m.p2);
-                    player1.played++;
-                    player2.played++;
-                    if (m.s1 > m.s2) { player1.won++; player1.points += 2; }
-                    else if (m.s2 > m.s1) { player2.won++; player2.points += 2; }
-                }
-            });
-
-            renderPointsTable();
-            checkQualifiers();
-        }
-
-        function renderPointsTable() {
-            const tbody = document.querySelector('#pointsTable tbody');
-            const sorted = [...players].sort((a, b) => b.points - a.points);
-            tbody.innerHTML = sorted.map(p => `
-                <tr class="border-b">
-                    <td class="py-2 font-medium">${p.name}</td>
-                    <td>${p.played}</td>
-                    <td>${p.won}</td>
-                    <td class="font-bold">${p.points}</td>
+        function renderDash() {
+            const sorted = [...players].sort((a,b) => b.pts - a.pts || b.runsScored - a.runsScored);
+            document.getElementById('pointsBody').innerHTML = sorted.map(p => `
+                <tr class="border-b border-slate-800/50">
+                    <td class="py-3 font-semibold">${p.name}</td>
+                    <td class="text-xs opacity-50">P:${p.p}</td>
+                    <td class="gold-text font-bold text-right">${p.pts} PTS</td>
                 </tr>
             `).join('');
-        }
 
-        function renderMatches() {
-            const container = document.getElementById('matchList');
-            container.innerHTML = matches.map((m, i) => `
-                <div class="flex items-center justify-between bg-white p-3 rounded-lg border">
-                    <div class="text-sm font-semibold w-1/3">${m.p1}</div>
-                    <div class="flex gap-2 w-1/3 justify-center">
-                        <input type="number" placeholder="0" class="w-10 border text-center rounded" oninput="updateScore(${i}, this.value, nextElementSibling.value)" value="${m.s1 ?? ''}">
-                        <span>vs</span>
-                        <input type="number" placeholder="0" class="w-10 border text-center rounded" oninput="updateScore(${i}, previousElementSibling.previousElementSibling.value, this.value)" value="${m.s2 ?? ''}">
-                    </div>
-                    <div class="text-sm font-semibold w-1/3 text-right">${m.p2}</div>
+            document.getElementById('fixtureList').innerHTML = fixtures.map((f, i) => `
+                <div class="antique-card p-4 rounded-2xl flex justify-between items-center ${f.status === 'Complete' ? 'opacity-30' : ''}">
+                    <span class="text-sm font-medium">${f.p1} <span class="text-gold mx-1">VS</span> ${f.p2}</span>
+                    ${f.status === 'Upcoming' ? `<button onclick="startMatch(${i})" class="gold-btn px-4 py-1 rounded-full text-[10px] font-bold">PLAY</button>` : `<span class="text-[10px] text-green-500 font-bold italic">FINISHED</span>`}
                 </div>
             `).join('');
+
+            if(fixtures.every(f => f.status === 'Complete')) showRankings();
         }
 
-        function checkQualifiers() {
-            const allFinished = matches.every(m => m.complete);
-            if (allFinished) {
-                const sorted = [...players].sort((a, b) => b.points - a.points);
-                const p1 = sorted[0];
-                const p2 = sorted[1];
-                
-                document.getElementById('knockoutSection').classList.remove('hidden');
-                document.getElementById('finalMatch').innerHTML = `
-                    <div class="flex items-center justify-between bg-yellow-50 p-4 rounded-xl border border-yellow-200 mt-2">
-                        <span class="font-bold">${p1.name}</span>
-                        <button onclick="declareWinner('${p1.name}')" class="bg-yellow-500 text-white text-xs px-3 py-1 rounded">Winner</button>
-                        <span class="text-gray-400">VS</span>
-                        <button onclick="declareWinner('${p2.name}')" class="bg-yellow-500 text-white text-xs px-3 py-1 rounded">Winner</button>
-                        <span class="font-bold">${p2.name}</span>
-                    </div>
-                `;
+        function startMatch(idx) {
+            activeMatchIdx = idx;
+            showScreen('gameScreen');
+            document.getElementById('tossLayer').classList.remove('hidden');
+            document.getElementById('playLayer').classList.add('hidden');
+        }
+
+        function playToss(choice) {
+            const outcome = Math.random() > 0.5 ? 'Heads' : 'Tails';
+            const tossWinner = outcome === choice ? fixtures[activeMatchIdx].p1 : fixtures[activeMatchIdx].p2;
+            const tossLoser = tossWinner === fixtures[activeMatchIdx].p1 ? fixtures[activeMatchIdx].p2 : fixtures[activeMatchIdx].p1;
+            
+            gameState = { batting: tossWinner, bowling: tossLoser, score: 0, wickets: 0, innings: 1, target: Infinity, isOver: false };
+            document.getElementById('tossLayer').classList.add('hidden');
+            document.getElementById('playLayer').classList.remove('hidden');
+            updateUI();
+        }
+
+        function playHand(userMove) {
+            const cpuMove = Math.floor(Math.random() * 6) + 1;
+            const feedback = document.getElementById('gameFeedback');
+            
+            if(userMove === cpuMove) {
+                gameState.wickets++;
+                feedback.innerHTML = `<span class="text-red-500 font-bold animate-pulse">WICKET!</span> Both showed ${userMove}`;
+            } else {
+                gameState.score += userMove;
+                players.find(p => p.name === gameState.batting).runsScored += userMove;
+                feedback.innerHTML = `Batter: ${userMove} | Bowler: ${cpuMove}`;
             }
+
+            if(gameState.wickets >= 2) {
+                if(gameState.innings === 1) {
+                    gameState.target = gameState.score + 1;
+                    gameState.innings = 2; gameState.wickets = 0; gameState.score = 0;
+                    [gameState.batting, gameState.bowling] = [gameState.bowling, gameState.batting];
+                    alert(`Target: ${gameState.target}`);
+                } else endMatch(gameState.bowling);
+            } else if(gameState.innings === 2 && gameState.score >= gameState.target) {
+                endMatch(gameState.batting);
+            }
+            updateUI();
         }
 
-        function declareWinner(name) {
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('winnerScreen').classList.remove('hidden');
-            document.getElementById('winnerName').innerText = name;
+        function endMatch(winnerName) {
+            const f = fixtures[activeMatchIdx];
+            f.status = 'Complete';
+            players.find(p => p.name === f.p1).p++;
+            players.find(p => p.name === f.p2).p++;
+            players.find(p => p.name === winnerName).pts += 2;
+            players.find(p => p.name === winnerName).w++;
+            showScreen('dashScreen');
+            renderDash();
         }
 
-        function copyFixtures() {
-            const text = matches.map(m => `${m.p1} vs ${m.p2}`).join('\n');
-            navigator.clipboard.writeText(text);
-            alert("Fixtures copied to clipboard!");
+        function showRankings() {
+            showScreen('rankingScreen');
+            const sorted = [...players].sort((a,b) => b.pts - a.pts || b.runsScored - a.runsScored);
+            const container = document.getElementById('podiumList');
+            
+            container.innerHTML = sorted.map((p, i) => {
+                const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'opacity-70';
+                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
+                
+                return `
+                <div class="antique-card p-5 rounded-2xl flex items-center justify-between ${rankClass} transform transition hover:scale-105">
+                    <div class="flex items-center gap-4">
+                        <span class="text-2xl">${medal}</span>
+                        <div>
+                            <h4 class="${i === 0 ? 'gold-text text-xl' : 'text-md font-bold'}">${p.name}</h4>
+                            <p class="text-[10px] uppercase opacity-50">${p.w} Wins • ${p.runsScored} Total Runs</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-black gold-text">${p.pts}</span>
+                        <p class="text-[8px] opacity-40">POINTS</p>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateUI() {
+            document.getElementById('battingName').innerText = gameState.batting;
+            document.getElementById('currentScore').innerText = gameState.score;
+            document.getElementById('wicketStatus').innerText = `Wickets: ${gameState.wickets}/2`;
+            document.getElementById('targetText').innerText = gameState.innings === 2 ? `Target: ${gameState.target}` : 'First Innings';
+        }
+
+        function showScreen(id) {
+            ['setupScreen', 'dashScreen', 'gameScreen', 'rankingScreen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
     </script>
 </body>
 </html>
-
